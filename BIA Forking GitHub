@@ -1,0 +1,238 @@
+#Load the dataset----
+url <- "https://raw.githubusercontent.com/CapsuleCisauk/BIA-Car-Sales-Analytics/refs/heads/main/car_data.csv"
+data <- read.csv(url)
+# View a few rows of the dataset to confirm it's loaded
+View(data)
+
+#GGplot : data----
+library(ggplot2)
+library(ISLR)
+
+ggplot(data = data)
+
+#GGplot : aesthetic
+library(ggplot2)
+library(ISLR)
+head(data)
+
+ggplot(data, aes(x = Annual.Income, y = Price...., color = Transmission))
+
+#GGplot : Pie Chart FIX----
+library(ggplot2)
+library(ISLR)
+head(data)
+group_by
+revenue_by_body_style <- data %>%
+  group_by(Body.Style) %>%
+  summarise(Total_Revenue = sum(Annual.Income)) %>%
+  mutate(Percentage = Total_Revenue / sum(Total_Revenue) * 100)
+
+# Create a pie chart 
+ggplot(revenue_by_body_style, aes(x = "", y = Total_Revenue, fill = Body.Style)) +
+  geom_bar(stat = "identity") +
+  coord_polar("y") +
+  geom_text(aes(label = paste0(round(Percentage, 1), "%")), 
+            position = position_stack(vjust = 0.5)) +
+  labs(title = "Revenue Contribution by Body Style",
+       x = NULL, 
+       y = NULL) +
+  theme_void() +
+  theme(legend.title = element_blank())
+
+#GGplot : Bar Chart FIX----
+library(dplyr)
+library(ggplot2)
+library(ISLR)
+head(data)
+
+body_style_count <- data %>%
+  group_by(Gender, Body.Style) %>%
+  summarise(Count = n()) %>%
+  ungroup()
+
+# Create a bar chart
+ggplot(body_style_count, aes(x = Body.Style, y = Count, fill = Gender)) +
+  geom_bar(stat = "identity", position = position_dodge()) +
+  labs(title = "Count of Each Body Style by Gender",
+       x = "Body Style",
+       y = "Count") +
+  theme_minimal() +
+  scale_fill_manual(values = c("Male" = "black", "Female" = "pink"))
+
+#Bar Plot: Number of cars sold by Company FIX----
+library(viridis)
+library(dplyr)
+library(ggplot2)
+library(ISLR)
+head(data)
+
+ggplot(data, aes(x = Company)) +
+  geom_bar(aes(fill = Company)) +
+  scale_fill_viridis_d(option = "plasma") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+  labs(title = "Number of Cars Sold by Company", x = "Company", y = "Number of Cars")
+
+#Density Plot: Distribution of Annual Income FIX----
+library(viridis)
+library(dplyr)
+library(ggplot2)
+head(data)
+ggplot(data, aes(x = Annual.Income, fill = Company)) +
+  geom_density(alpha = 0.7) +
+  scale_fill_viridis_d(option = "plasma") +
+  labs(title = "Distribution of Annual Income", x = "Annual Income", y = "Density") +
+scale_y_continuous(labels = scales::comma) +
+scale_x_continuous(labels = scales::comma)
+
+#Pie Chart: Car Sales by Company FIX----
+library(ggrepel)
+library(viridis)
+library(dplyr)
+library(ggplot2)
+head(data)
+
+# Data preparation for pie chart
+body_style_count <- data %>%
+  count(Body.Style) %>%
+  mutate(percentage = n / sum(n) * 100) %>%
+  arrange(desc(n))
+
+# Pie Chart: Car Sales by Body Style with Percentages
+ggplot(body_style_count, aes(x = "", y = n, fill = Body.Style)) +
+  geom_bar(stat = "identity", width = 1) +
+  coord_polar("y", start = 0) +
+  scale_fill_viridis_d(option = "plasma") +
+  theme_void() +
+  geom_label_repel(aes(label = paste0(Body.Style, ": ", round(percentage, 1), "%")),
+                   position = position_stack(vjust = 0.5),
+                   box.padding = 0.5,
+                   point.padding = 0.5,
+                   segment.color = 'grey50') +
+  labs(title = "Car Sales by Body Style", fill = "Body Style")
+
+#Bar Chart: Car Sales by Company--=
+model_count <- data %>%
+  count(Company) %>%
+  arrange(desc(n))
+
+ggplot(model_count, aes(x = reorder(Model, -n), y = n, fill = Model)) +
+  geom_bar(stat = "identity") +
+  scale_fill_viridis_d(option = "plasma") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+  labs(title = "Car Sales by Model", x = "Model", y = "Number of Cars Sold")
+#Map FIX BGT----
+
+# Load necessary libraries
+install.packages(leaflet)
+library(leaflet)
+library(dplyr)
+# Data preparation for map visualization
+sales_by_region <- data %>%
+  group_by(Dealer_Region) %>%
+  summarise(Sales_Count = n())
+
+# Manually provide some lat/lon for regions (example values)
+region_coords <- data.frame(
+  Dealer_Region = c("Middletown", "Aurora", "Greenville", "Pasco", "Janesville", "Scottsdale", "Austin"),
+  lat = c(39.5151, 41.7606, 34.8526, 46.2396, 42.6827, 33.4942, 30.2672),
+  lon = c(-84.3983, -88.3201, -82.3940, -119.1006, -89.0218, -111.9261, -97.7431)
+)
+
+# Merge sales data with coordinates
+merged_data <- merge(sales_by_region, region_coords, by = "Dealer_Region")
+
+# Define a color palette
+pal <- colorNumeric(palette = "Blues", domain = merged_data$Sales_Count)
+
+# Create a basic leaflet map
+leaflet(data = merged_data) %>%
+  addTiles() %>%
+  addCircles(lng = ~lon, lat = ~lat, weight = 1,
+             radius = ~sqrt(Sales_Count) * 10000, popup = ~Dealer_Region,
+             color = ~pal(Sales_Count), fillOpacity = 0.5) %>%
+  addLegend(position = "bottomright", pal = pal, values = ~Sales_Count,
+            title = "Sales by Region", opacity = 0.5)
+
+#3D Scatter Plot FIX----
+# Install necessary packages
+install.packages("plotly")
+install.packages("dplyr")
+
+# Load necessary libraries
+library(plotly)
+library(dplyr)
+
+# Data preparation for visualization
+sales_summary <- data %>%
+  group_by(Dealer_Region, Company, Color) %>%
+  summarise(Sales_Count = n())
+
+# Create a 3D scatter plot
+fig <- plot_ly(
+  data = sales_summary,
+  x = ~Dealer_Region,
+  y = ~Company,
+  z = ~Sales_Count,
+  color = ~Color,
+  type = "scatter3d",
+  mode = "markers"
+)
+
+# Customize the layout
+fig <- fig %>%
+  layout(
+    title = "Car Sales by Region, Company, and Color",
+    scene = list(
+      xaxis = list(title = "Dealer Region"),
+      yaxis = list(title = "Company"),
+      zaxis = list(title = "Sales Count")
+    )
+  )
+
+# Display the plot
+fig
+
+#Time Series Plot FIX----
+# Install necessary packages
+install.packages("dygraphs")
+install.packages("xts")
+
+# Load necessary libraries
+library(dygraphs)
+library(xts)
+
+# Data preparation for time series
+data$Date <- as.Date(data$Date, format = "%m/%d/%Y")
+sales_ts <- data %>%
+  group_by(Date) %>%
+  summarise(Sales_Count = n()) %>%
+  xts(order.by = .$Date)
+
+# Create interactive time series plot
+dygraph(sales_ts) %>%
+  dyRangeSelector() %>%
+  dySeries("Sales_Count", label = "Car Sales")
+# Install necessary packages
+install.packages("plotly")
+install.packages("dplyr")
+install.packages("tidyr")
+install.packages("circlize")
+install.packages("tibble")
+
+# Load necessary libraries
+library(plotly)
+library(dplyr)
+library(tidyr)
+library(circlize)
+library(tibble)
+
+# Data preparation for chord diagram
+sales_matrix <- data %>%
+  group_by(Dealer_Region, Company) %>%
+  summarise(Sales_Count = n()) %>%
+  pivot_wider(names_from = Dealer_Region, values_from = Sales_Count, values_fill = list(Sales_Count = 0)) %>%
+  column_to_rownames(var = "Company") %>%
+  as.matrix()
+
+# Create chord diagram
+chordDiagram(sales_matrix, transparency = 0.5)
