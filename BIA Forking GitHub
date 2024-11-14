@@ -212,27 +212,3 @@ sales_ts <- data %>%
 dygraph(sales_ts) %>%
   dyRangeSelector() %>%
   dySeries("Sales_Count", label = "Car Sales")
-# Install necessary packages
-install.packages("plotly")
-install.packages("dplyr")
-install.packages("tidyr")
-install.packages("circlize")
-install.packages("tibble")
-
-# Load necessary libraries
-library(plotly)
-library(dplyr)
-library(tidyr)
-library(circlize)
-library(tibble)
-
-# Data preparation for chord diagram
-sales_matrix <- data %>%
-  group_by(Dealer_Region, Company) %>%
-  summarise(Sales_Count = n()) %>%
-  pivot_wider(names_from = Dealer_Region, values_from = Sales_Count, values_fill = list(Sales_Count = 0)) %>%
-  column_to_rownames(var = "Company") %>%
-  as.matrix()
-
-# Create chord diagram
-chordDiagram(sales_matrix, transparency = 0.5)
